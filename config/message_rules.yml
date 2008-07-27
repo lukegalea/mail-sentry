@@ -1,0 +1,13 @@
+rules:
+  -
+    name:      SecureMarkedConfidentialEmails
+    condition: message.header.subject =~ /.*BLOCK.*/
+    action:    block
+  -
+    name:      SecurePatientEmails
+    condition: patient_match = true
+    action:    block
+  -
+    name:      LogEmailFromStephen
+    condition: message.header.from.first.address.downcase = "lee.stephen@torontorehab.on.ca"
+    action:    log

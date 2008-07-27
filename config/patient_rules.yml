@@ -1,0 +1,5 @@
+rules:
+  -
+    name:      SufficientMatching
+    condition: ( (matches includes :lastname) and (matches includes :firstname) ) and ( (matches includes :mrn) or (matches includes :healthcard) )
+    action:    consider_as_matching

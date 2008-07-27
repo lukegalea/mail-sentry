@@ -1,0 +1,3 @@
+application/vnd.ms-excel: xls2csv $1
+application/msword: catdoc $1
+text/html: w3m -T text/html -dump $1

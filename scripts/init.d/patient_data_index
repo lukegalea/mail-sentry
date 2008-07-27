@@ -1,0 +1,16 @@
+#! /bin/sh
+# . /etc/rc.d/init.d/functions  # uncomment/modify for your killproc
+case "$1" in
+	start)
+        	echo "Starting medimail-webmail"
+       		cd /opt/medimail
+		patient_data_index/patient_data_index_server.rb &
+            ;;
+        stop)
+		echo "Unimplemented"
+            ;;
+        *)
+                echo "Usage: $0 {start|stop}"
+                exit 1
+        esac
+exit 0

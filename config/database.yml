@@ -1,0 +1,27 @@
+development:
+  adapter: mysql
+  database: medimail_dev
+  host: 127.0.0.1
+  username: medi
+  password: mail
+
+development_new:
+  adapter: mysql
+  database: mailsentry_dev
+  host: 127.0.0.1
+  username: medi
+  password: mail
+
+test:
+  adapter: mysql
+  database: medimail_test
+  host: localhost
+  username: root
+  password:
+
+production:
+  adapter: mysql
+  database: medimail_production
+  host: localhost
+  username: root
+  password:

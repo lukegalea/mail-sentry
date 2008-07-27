@@ -1,0 +1,58 @@
+MailSentry
+==========
+v0.1
+
+Years ago I had a grand vision of an email analysis system for hospitals that would scan all outbound emails for patient health information or other sensitive data. The system could be configured to block offending mail and notify the privacy office or force the message through a challenge response process that forces the receiver to view it over a secure connection rather than allow the message to be sent unsecured.
+
+So I built it using Ruby. It’s never seen any “real world” action, but it works. The gist of it is this:
+
+You take all the sensitive data you have (patients name, addresses, medical record numbers, etc) and it’s tokenized and hashed and loaded into an in memory DB.
+
+There is a message analyzer that’s added as a filter on your organization’s mail relay (to sendmail, zmailer, whatever). It rips apart the message and converts binary attachments into tokenized text (pdf, word, etc. It can even do OCR on scanned images). It’s passed off to a DRB service that hosts the in-memory DB of hashed sensitive data.
+The algorithm
+
+The assumption is that if you have a list of just the first name of 100 patients/clients/whatever, then you aren’t actually violating anyone’s privacy because you haven’t uniquely identified any specific patient. So the DRB service builds a list of hits against specific patients/entities. For example, it determines that a patient 1 had their first name referenced, patient 2 had their last name referenced, patient 3 had their first, last and social security number referenced.
+
+Those “hits” are passed to a rules engine that allows each institution to define what constitutes a breach of privacy. Pretty much anyone would agree that patient 3 in the example above is enough info to uniquely identify them. The rules also specify the action (allow, deny, log, notify, etc) to perform.
+
+For more details: http://www.ideaforge.org/blog/?p=3
+
+This is the last version that will be pure Ruby. The Patient Data Index is on it's way to being erlang. To run the ruby version as it is:
+
+Make sure you have the required gems installed:
+-- sudo gem install activerecord activesupport faker rein rmail
+
+If you want to be able to unpack attachments and scan their text, make sure you have some mime handlers setup. I use xls2csv for excel, catdoc for msword and w3m for html. See config/mime_handlers.yml for more info.
+
+Generate some fake patient data
+-- cd data
+-- ruby generate_patient_data.rb
+
+Load that data into the DB (this is somewhat redundant since it all gets loaded into memory every time the index starts, but this was a stepping stone towards a better data model as described in data/proposed_new_db_structure.sql - The erlang Mnesia DB will be based on this)
+-- Create patients table:
+CREATE TABLE `patients` (
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `mrn` varchar(10) NOT NULL default '',
+  `lastname` varchar(50) NOT NULL default '',
+  `firstname` varchar(50) NOT NULL default '',
+  `healthcard` varchar(25) NOT NULL default '',
+  PRIMARY KEY  (`id`),
+  KEY `mrn` (`mrn`),
+  KEY `lastname` (`lastname`),
+  KEY `firstname` (`firstname`),
+  KEY `healthcard` (`healthcard`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+-- From root of project: ruby data/patient_import.rb
+
+Launch the patient_data_index_server
+-- From root of project: ruby patient_data_index/patient_data_index_server.rb
+Leave that running..
+
+Run some analyses.. You'll need an email or two save to a file. I have a bunch I use for testing but they are all real emails.
+-- From root of project: ruby message_analyzer/message_analyzer.rb --file name_of_email.eml
+
+That's it! config/*.yml has all the rules about what is a match and what isn't.. And depending on your mail relay and how it expects mail filters to behave you'll have to change the output of the analyzer to respond with the right exit code, etc.
+
+So - very much a work in progress.
+
+Copyright (c) 2006-2008 Luke Galea, released under the MIT license
