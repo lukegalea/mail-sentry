@@ -1,0 +1,4 @@
+log/*.log
+test/messages/*
+data/patients.csv
+.DS_Store
